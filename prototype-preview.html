@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Photos Habesha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0c0e;
+      --bg-elevated: #14171a;
+      --bg-bar: rgba(10, 12, 14, 0.92);
+      --bg-card: #161a1e;
+      --text: #f5f6f7;
+      --text-secondary: #a0a8b0;
+      --text-muted: #6b737c;
+      --accent: #b07bb5;
+      --accent-soft: rgba(176, 123, 181, 0.18);
+      --accent-glow: rgba(176, 123, 181, 0.35);
+      --accent-strong: #d4a0d8;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.1);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --nav-h: 62px;
+      --top-h: 52px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      background: #050607;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", "Noto Sans Ethiopic", sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    @media (min-width: 480px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .app-shell {
+        height: min(920px, 100vh - 32px);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 24px 80px rgba(0,0,0,0.6);
+      }
+    }
+
+    /* TOP BAR */
+    .top-bar {
+      height: var(--top-h);
+      min-height: var(--top-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 8px 0 18px;
+      background: var(--bg-bar);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 40;
+      flex-shrink: 0;
+    }
+
+    .top-bar .title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .top-bar .actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .icon-btn:active {
+      background: rgba(255,255,255,0.08);
+      transform: scale(0.94);
+    }
+
+    .icon-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: none;
+      flex-direction: column;
+      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px);
+      scrollbar-width: none;
+    }
+
+    .screen::-webkit-scrollbar { display: none; }
+    .screen.active { display: flex; }
+
+    /* PHOTOS TIMELINE */
+    .date-group { margin-bottom: 6px; }
+
+    .date-header {
+      padding: 16px 16px 10px;
+      position: sticky;
+      top: 0;
+      background: linear-gradient(to bottom, var(--bg) 65%, transparent);
+      z-index: 10;
+    }
+
+    .date-eth {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .date-greg {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5px;
+      padding: 0 1px;
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      background: var(--bg-elevated);
+      overflow: hidden;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .thumb:active img { transform: scale(0.96); }
+
+    .thumb .video-badge {
+      position: absolute;
+      bottom: 5px;
+      left: 5px;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 6px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      pointer-events: none;
+    }
+
+    .thumb .fav-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 11px;
+      color: #f0a0c8;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+
+    .on-this-day {
+      padding: 12px 16px 4px;
+      font-size: 12px;
+      color: var(--accent-strong);
+      font-weight: 500;
+    }
+
+    /* VIEWER */
+    .viewer {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .viewer.open { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .viewer-top {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 6px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 2;
+    }
+
+    .viewer-img-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .viewer-img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .viewer-bottom {
+      padding: 16px 18px calc(20px + var(--safe-bottom));
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 2;
+    }
+
+    .viewer-meta-eth {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 3px;
+      letter-spacing: -0.01em;
+    }
+
+    .viewer-meta-greg {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .viewer-meta-extra {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .viewer-actions { display: flex; gap: 2px; }
+
+    /* CALENDAR — Photo Map */
+    .cal-header {
+      padding: 20px 20px 6px;
+      text-align: center;
+    }
+
+    .cal-month-name {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .cal-year {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .month-chips {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .month-chips::-webkit-scrollbar { display: none; }
+
+    .month-chip {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--bg-elevated);
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .month-chip.active {
+      background: var(--accent-soft);
+      border-color: rgba(176, 123, 181, 0.4);
+      color: var(--accent-strong);
+    }
+
+    .cal-grid-wrap { padding: 0 14px 8px; }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
+    }
+
+    .cal-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg-elevated);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+
+    .cal-day.empty {
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .cal-day.empty-day {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .cal-day.has-photos {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .cal-day.has-photos:active { transform: scale(0.94); }
+
+    .cal-day img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cal-day .day-label {
+      position: absolute;
+      bottom: 3px;
+      left: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      line-height: 1;
+    }
+
+    .cal-day.empty-day .day-label {
+      color: var(--text-muted);
+      text-shadow: none;
+      position: static;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .cal-day.holiday::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent-strong);
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .cal-legend {
+      padding: 16px 20px 24px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* FOLDERS */
+    .folders-header { padding: 8px 16px 12px; }
+
+    .folders-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .quick-chips {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .quick-chips::-webkit-scrollbar { display: none; }
+
+    .quick-chip {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+    }
+
+    .quick-chip .chip-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .quick-chip:active .chip-icon {
+      background: var(--accent-soft);
+      border-color: rgba(176, 123, 181, 0.4);
+    }
+
+    .quick-chip svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .folders-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 4px 14px 20px;
+    }
+
+    .folder-card {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--bg-card);
+      aspect-ratio: 1 / 1.08;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      transition: transform 0.15s;
+    }
+
+    .folder-card:active { transform: scale(0.97); }
+
+    .folder-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .folder-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 32px 12px 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%);
+    }
+
+    .folder-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .folder-meta {
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
+      margin-top: 3px;
+    }
+
+    .folder-view-header {
+      padding: 8px 8px 12px 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .folder-view-title {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    /* SEARCH */
+    .search-bar-wrap { padding: 12px 16px 4px; }
+
+    .search-bar-inner { position: relative; }
+
+    .search-input {
+      width: 100%;
+      height: 44px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 0 16px 0 44px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: rgba(176, 123, 181, 0.45);
+    }
+
+    .search-input::placeholder { color: var(--text-muted); }
+
+    .search-icon-abs {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      display: flex;
+    }
+
+    .search-suggestions { padding: 8px 16px 24px; }
+
+    .search-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 14px 4px 8px;
+    }
+
+    .search-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .search-item:active { background: rgba(255,255,255,0.04); }
+
+    .search-item-label {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .search-item-count {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      height: calc(var(--nav-h) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: var(--bg-bar);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: stretch;
+      justify-content: space-around;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 8px 0;
+      transition: color 0.2s;
+      font-family: inherit;
+    }
+
+    .nav-item.active { color: var(--accent-strong); }
+
+    .nav-item svg {
+      width: 23px;
+      height: 23px;
+      fill: currentColor;
+    }
+
+    /* MENU */
+    .menu-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 80;
+      display: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .menu-overlay.open { display: block; }
+
+    .menu-popover {
+      position: absolute;
+      top: 54px;
+      right: 12px;
+      background: #1a1e22;
+      border-radius: 14px;
+      padding: 6px 0;
+      min-width: 190px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-strong);
+      z-index: 90;
+      display: none;
+      overflow: hidden;
+    }
+
+    .menu-popover.open { display: block; }
+
+    .menu-item {
+      display: block;
+      width: 100%;
+      padding: 13px 18px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 450;
+      text-align: left;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .menu-item:active { background: rgba(255,255,255,0.06); }
+
+    /* TOAST */
+    .toast {
+      position: absolute;
+      bottom: calc(var(--nav-h) + var(--safe-bottom) + 20px);
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #252a2f;
+      color: var(--text);
+      padding: 11px 20px;
+      border-radius: 24px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 120;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="app">
+    <header class="top-bar" id="topBar">
+      <div class="title" id="topTitle">Photos Habesha</div>
+      <div class="actions">
+        <button class="icon-btn" id="btnSearch" aria-label="Search">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        </button>
+        <button class="icon-btn" id="btnMenu" aria-label="Menu">
+          <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="main">
+      <section class="screen active" id="screenPhotos">
+        <div id="timeline"></div>
+      </section>
+
+      <section class="screen" id="screenCalendar">
+        <div class="cal-header">
+          <div class="cal-month-name" id="calMonthName">መስከረም</div>
+          <div class="cal-year" id="calYear">2019 ዓ.ም.</div>
+        </div>
+        <div class="month-chips" id="monthChips"></div>
+        <div class="cal-grid-wrap">
+          <div class="cal-weekdays">
+            <span>ሰ</span><span>ማ</span><span>ረ</span><span>ሐ</span><span>ዓ</span><span>ዓ</span><span>ቅ</span>
+          </div>
+          <div class="cal-days" id="calDays"></div>
+        </div>
+        <div class="cal-legend">Days with photos show a thumbnail · Tap to open that day</div>
+      </section>
+
+      <section class="screen" id="screenFolders">
+        <div class="folders-header">
+          <div class="folders-section-label">Quick access</div>
+          <div class="quick-chips" id="quickChips">
+            <button class="quick-chip" data-quick="videos">
+              <div class="chip-icon"><svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg></div>
+              Videos
+            </button>
+            <button class="quick-chip" data-quick="favorites">
+              <div class="chip-icon"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+              Favourites
+            </button>
+            <button class="quick-chip" data-quick="location">
+              <div class="chip-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+              Location
+            </button>
+            <button class="quick-chip" data-quick="screenshots">
+              <div class="chip-icon"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div>
+              Screenshots
+            </button>
+          </div>
+        </div>
+        <div class="folders-section-label" style="padding: 8px 16px 0;">Device</div>
+        <div class="folders-grid" id="foldersGrid"></div>
+      </section>
+
+      <section class="screen" id="screenFolderDetail">
+        <div class="folder-view-header">
+          <button class="icon-btn" id="btnFolderBack" aria-label="Back">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          </button>
+          <div class="folder-view-title" id="folderDetailTitle">Folder</div>
+        </div>
+        <div class="photo-grid" id="folderPhotoGrid"></div>
+      </section>
+
+      <section class="screen" id="screenSearch">
+        <div class="search-bar-wrap">
+          <div class="search-bar-inner">
+            <span class="search-icon-abs">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </span>
+            <input type="search" class="search-input" id="searchInput" placeholder="Search dates, places, folders…" autocomplete="off" />
+          </div>
+        </div>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </section>
+
+      <div class="viewer" id="viewer">
+        <div class="viewer-top">
+          <button class="icon-btn" id="viewerClose" aria-label="Close">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          </button>
+          <div class="viewer-actions">
+            <button class="icon-btn" id="viewerFav" aria-label="Favorite">
+              <svg viewBox="0 0 24 24" id="viewerFavIcon"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/></svg>
+            </button>
+            <button class="icon-btn" id="viewerMore" aria-label="More">
+              <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="viewer-img-wrap">
+          <img id="viewerImg" src="" alt="Photo" />
+        </div>
+        <div class="viewer-bottom">
+          <div class="viewer-meta-eth" id="viewerEth"></div>
+          <div class="viewer-meta-greg" id="viewerGreg"></div>
+          <div class="viewer-meta-extra" id="viewerExtra"></div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-nav="photos">
+        <svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg>
+        <span>Photos</span>
+      </button>
+      <button class="nav-item" data-nav="calendar">
+        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+        <span>Calendar</span>
+      </button>
+      <button class="nav-item" data-nav="folders">
+        <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+        <span>Folders</span>
+      </button>
+      <button class="nav-item" data-nav="search">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span>Search</span>
+      </button>
+    </nav>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="menu-popover" id="menuPopover">
+      <button class="menu-item" data-action="select">Select photos</button>
+      <button class="menu-item" data-action="settings">Settings</button>
+      <button class="menu-item" data-action="about">About Photos Habesha</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    const ETH_MONTHS = [
+      "መስከረም", "ጥቅምት", "ኅዳር", "ታኅሣሥ", "ጥር", "የካቲት",
+      "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"
+    ];
+
+    const SAMPLE_PHOTOS = [
+      { id: 1, src: "https://picsum.photos/seed/hab1/500/500", eth: { y: 2019, m: 1, d: 12 }, greg: "Sep 22, 2026", time: "2:35 PM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: true },
+      { id: 2, src: "https://picsum.photos/seed/hab2/500/500", eth: { y: 2019, m: 1, d: 12 }, greg: "Sep 22, 2026", time: "11:20 AM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: false },
+      { id: 3, src: "https://picsum.photos/seed/hab3/500/500", eth: { y: 2019, m: 1, d: 12 }, greg: "Sep 22, 2026", time: "9:05 AM", folder: "Instagram", location: null, type: "photo", fav: false },
+      { id: 4, src: "https://picsum.photos/seed/hab4/500/500", eth: { y: 2019, m: 1, d: 12 }, greg: "Sep 22, 2026", time: "4:12 PM", folder: "Camera", location: "Dire Dawa", type: "photo", fav: true },
+      { id: 5, src: "https://picsum.photos/seed/hab5/500/500", eth: { y: 2019, m: 1, d: 12 }, greg: "Sep 22, 2026", time: "6:40 PM", folder: "WhatsApp", location: null, type: "video", duration: "0:25", fav: false },
+      { id: 6, src: "https://picsum.photos/seed/hab6/500/500", eth: { y: 2019, m: 1, d: 12 }, greg: "Sep 22, 2026", time: "7:15 PM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: false },
+      { id: 7, src: "https://picsum.photos/seed/hab7/500/500", eth: { y: 2019, m: 1, d: 11 }, greg: "Sep 21, 2026", time: "3:00 PM", folder: "Camera", location: "Bahir Dar", type: "photo", fav: false },
+      { id: 8, src: "https://picsum.photos/seed/hab8/500/500", eth: { y: 2019, m: 1, d: 11 }, greg: "Sep 21, 2026", time: "1:22 PM", folder: "Facebook", location: null, type: "photo", fav: true },
+      { id: 9, src: "https://picsum.photos/seed/hab9/500/500", eth: { y: 2019, m: 1, d: 11 }, greg: "Sep 21, 2026", time: "10:45 AM", folder: "Camera", location: "Bahir Dar", type: "photo", fav: false },
+      { id: 10, src: "https://picsum.photos/seed/hab10/500/500", eth: { y: 2019, m: 1, d: 11 }, greg: "Sep 21, 2026", time: "8:30 AM", folder: "Screenshots", location: null, type: "photo", fav: false },
+      { id: 11, src: "https://picsum.photos/seed/hab11/500/500", eth: { y: 2019, m: 1, d: 11 }, greg: "Sep 21, 2026", time: "5:50 PM", folder: "Camera", location: null, type: "video", duration: "1:12", fav: false },
+      { id: 12, src: "https://picsum.photos/seed/hab12/500/500", eth: { y: 2019, m: 1, d: 10 }, greg: "Sep 20, 2026", time: "2:10 PM", folder: "Camera", location: "Gondar", type: "photo", fav: false },
+      { id: 13, src: "https://picsum.photos/seed/hab13/500/500", eth: { y: 2019, m: 1, d: 10 }, greg: "Sep 20, 2026", time: "12:00 PM", folder: "Instagram", location: "Gondar", type: "photo", fav: true },
+      { id: 14, src: "https://picsum.photos/seed/hab14/500/500", eth: { y: 2019, m: 1, d: 10 }, greg: "Sep 20, 2026", time: "9:15 AM", folder: "Telegram", location: null, type: "photo", fav: false },
+      { id: 15, src: "https://picsum.photos/seed/hab15/500/500", eth: { y: 2019, m: 1, d: 8 }, greg: "Sep 18, 2026", time: "4:30 PM", folder: "Camera", location: "Lalibela", type: "photo", fav: false },
+      { id: 16, src: "https://picsum.photos/seed/hab16/500/500", eth: { y: 2019, m: 1, d: 8 }, greg: "Sep 18, 2026", time: "11:00 AM", folder: "Camera", location: "Lalibela", type: "photo", fav: true },
+      { id: 17, src: "https://picsum.photos/seed/hab17/500/500", eth: { y: 2019, m: 1, d: 8 }, greg: "Sep 18, 2026", time: "6:20 PM", folder: "WhatsApp", location: null, type: "photo", fav: false },
+      { id: 18, src: "https://picsum.photos/seed/hab18/500/500", eth: { y: 2019, m: 1, d: 5 }, greg: "Sep 15, 2026", time: "1:40 PM", folder: "Camera", location: "Hawassa", type: "photo", fav: false },
+      { id: 19, src: "https://picsum.photos/seed/hab19/500/500", eth: { y: 2019, m: 1, d: 5 }, greg: "Sep 15, 2026", time: "10:05 AM", folder: "Downloads", location: null, type: "photo", fav: false },
+      { id: 20, src: "https://picsum.photos/seed/hab20/500/500", eth: { y: 2019, m: 1, d: 5 }, greg: "Sep 15, 2026", time: "7:55 PM", folder: "Camera", location: "Hawassa", type: "video", duration: "0:48", fav: false },
+      { id: 21, src: "https://picsum.photos/seed/hab21/500/500", eth: { y: 2019, m: 1, d: 1 }, greg: "Sep 11, 2026", time: "9:00 AM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: true },
+      { id: 22, src: "https://picsum.photos/seed/hab22/500/500", eth: { y: 2019, m: 1, d: 1 }, greg: "Sep 11, 2026", time: "11:30 AM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: true },
+      { id: 23, src: "https://picsum.photos/seed/hab23/500/500", eth: { y: 2019, m: 1, d: 1 }, greg: "Sep 11, 2026", time: "3:15 PM", folder: "Instagram", location: null, type: "photo", fav: false },
+      { id: 24, src: "https://picsum.photos/seed/hab24/500/500", eth: { y: 2019, m: 1, d: 1 }, greg: "Sep 11, 2026", time: "5:00 PM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: false },
+      { id: 25, src: "https://picsum.photos/seed/hab25/500/500", eth: { y: 2019, m: 2, d: 3 }, greg: "Oct 13, 2026", time: "2:00 PM", folder: "Camera", location: "Mekelle", type: "photo", fav: false },
+      { id: 26, src: "https://picsum.photos/seed/hab26/500/500", eth: { y: 2019, m: 2, d: 3 }, greg: "Oct 13, 2026", time: "4:45 PM", folder: "Facebook", location: null, type: "photo", fav: false },
+      { id: 27, src: "https://picsum.photos/seed/hab27/500/500", eth: { y: 2019, m: 2, d: 15 }, greg: "Oct 25, 2026", time: "12:30 PM", folder: "Camera", location: null, type: "photo", fav: true },
+      { id: 28, src: "https://picsum.photos/seed/hab28/500/500", eth: { y: 2019, m: 2, d: 20 }, greg: "Oct 30, 2026", time: "6:10 PM", folder: "Screenshots", location: null, type: "photo", fav: false },
+      { id: 29, src: "https://picsum.photos/seed/hab29/500/500", eth: { y: 2019, m: 1, d: 17 }, greg: "Sep 27, 2026", time: "10:00 AM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: false },
+      { id: 30, src: "https://picsum.photos/seed/hab30/500/500", eth: { y: 2019, m: 1, d: 17 }, greg: "Sep 27, 2026", time: "2:30 PM", folder: "Camera", location: "Addis Ababa", type: "photo", fav: true },
+      { id: 31, src: "https://picsum.photos/seed/hab31/500/500", eth: { y: 2019, m: 1, d: 14 }, greg: "Sep 24, 2026", time: "1:00 PM", folder: "Telegram", location: null, type: "photo", fav: false },
+      { id: 32, src: "https://picsum.photos/seed/hab32/500/500", eth: { y: 2019, m: 1, d: 14 }, greg: "Sep 24, 2026", time: "8:20 AM", folder: "Downloads", location: null, type: "photo", fav: false },
+      { id: 33, src: "https://picsum.photos/seed/hab33/500/500", eth: { y: 2019, m: 1, d: 20 }, greg: "Sep 30, 2026", time: "5:40 PM", folder: "Camera", location: "Jimma", type: "photo", fav: false },
+      { id: 34, src: "https://picsum.photos/seed/hab34/500/500", eth: { y: 2019, m: 1, d: 20 }, greg: "Sep 30, 2026", time: "11:15 AM", folder: "WhatsApp", location: null, type: "video", duration: "0:33", fav: false },
+      { id: 35, src: "https://picsum.photos/seed/hab35/500/500", eth: { y: 2019, m: 1, d: 22 }, greg: "Oct 2, 2026", time: "3:25 PM", folder: "Camera", location: null, type: "photo", fav: false },
+      { id: 36, src: "https://picsum.photos/seed/hab36/500/500", eth: { y: 2019, m: 1, d: 25 }, greg: "Oct 5, 2026", time: "9:50 AM", folder: "Instagram", location: "Axum", type: "photo", fav: true },
+    ];
+
+    const FOLDERS = [
+      { id: "Camera", name: "Camera", count: 1313, size: "3.1 GB" },
+      { id: "Instagram", name: "Instagram", count: 53, size: "9.2 MB" },
+      { id: "Facebook", name: "Facebook", count: 28, size: "4.1 MB" },
+      { id: "Screenshots", name: "Screenshots", count: 187, size: "42 MB" },
+      { id: "Telegram", name: "Telegram", count: 64, size: "18 MB" },
+      { id: "Downloads", name: "Downloads", count: 41, size: "120 MB" },
+      { id: "WhatsApp", name: "WhatsApp", count: 312, size: "890 MB" },
+      { id: "Videos", name: "Videos", count: 126, size: "2.4 GB" },
+    ];
+
+    const HOLIDAYS = { "2019-1-1": "Enkutatash", "2019-1-17": "Meskel" };
+
+    let currentScreen = "photos";
+    let currentMonth = 1;
+    let currentYear = 2019;
+    let selectedPhoto = null;
+
+    function ethDateStr(eth) { return `${ETH_MONTHS[eth.m - 1]} ${eth.d}, ${eth.y}`; }
+    function ethKey(eth) { return `${eth.y}-${eth.m}-${eth.d}`; }
+
+    function groupByEthDate(photos) {
+      const map = new Map();
+      photos.forEach(p => {
+        const key = ethKey(p.eth);
+        if (!map.has(key)) map.set(key, { eth: p.eth, greg: p.greg, photos: [] });
+        map.get(key).photos.push(p);
+      });
+      return Array.from(map.values()).sort((a, b) => {
+        if (a.eth.y !== b.eth.y) return b.eth.y - a.eth.y;
+        if (a.eth.m !== b.eth.m) return b.eth.m - a.eth.m;
+        return b.eth.d - a.eth.d;
+      });
+    }
+
+    function photosForDate(y, m, d) {
+      return SAMPLE_PHOTOS.filter(p => p.eth.y === y && p.eth.m === m && p.eth.d === d);
+    }
+
+    function photosForFolder(folderId) {
+      if (folderId === "Videos") return SAMPLE_PHOTOS.filter(p => p.type === "video");
+      return SAMPLE_PHOTOS.filter(p => p.folder === folderId);
+    }
+
+    function firstPhotoForDay(month, day) {
+      return SAMPLE_PHOTOS.find(p => p.eth.m === month && p.eth.y === currentYear && p.eth.d === day);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove("show"), 1800);
+    }
+
+    function renderTimeline(photos = SAMPLE_PHOTOS, scrollToDate = null) {
+      const timeline = document.getElementById("timeline");
+      const groups = groupByEthDate(photos);
+      let html = "";
+      groups.forEach((g, idx) => {
+        if (g.eth.m === 1 && g.eth.d === 12 && idx === 0) {
+          html += `<div class="on-this-day">On this day · ${ETH_MONTHS[0]} ${g.eth.d}</div>`;
+        }
+        html += `
+          <div class="date-group" id="date-${ethKey(g.eth)}">
+            <div class="date-header">
+              <div class="date-eth">${ethDateStr(g.eth)} ዓ.ም.</div>
+              <div class="date-greg">${g.greg}</div>
+            </div>
+            <div class="photo-grid">${g.photos.map(p => thumbHTML(p)).join("")}</div>
+          </div>`;
+      });
+      if (!groups.length) {
+        html = `<div style="padding:48px 24px;text-align:center;color:var(--text-muted);font-size:14px">No photos found</div>`;
+      }
+      timeline.innerHTML = html;
+      timeline.querySelectorAll(".thumb").forEach(el => {
+        el.addEventListener("click", () => openViewer(+el.dataset.id));
+      });
+      if (scrollToDate) {
+        const el = document.getElementById(`date-${ethKey(scrollToDate)}`);
+        if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
+      }
+    }
+
+    function thumbHTML(p) {
+      const videoBadge = p.type === "video" ? `<span class="video-badge">▶ ${p.duration || "0:00"}</span>` : "";
+      const favBadge = p.fav ? `<span class="fav-badge">♥</span>` : "";
+      return `<div class="thumb" data-id="${p.id}"><img src="${p.src}" alt="" loading="lazy" />${videoBadge}${favBadge}</div>`;
+    }
+
+    function renderCalendar() {
+      document.getElementById("calMonthName").textContent = ETH_MONTHS[currentMonth - 1];
+      document.getElementById("calYear").textContent = `${currentYear} ዓ.ም.`;
+
+      const chips = document.getElementById("monthChips");
+      chips.innerHTML = ETH_MONTHS.slice(0, 12).map((name, i) =>
+        `<button class="month-chip ${i + 1 === currentMonth ? "active" : ""}" data-month="${i + 1}">${name}</button>`
+      ).join("");
+      chips.querySelectorAll(".month-chip").forEach(btn => {
+        btn.addEventListener("click", () => { currentMonth = +btn.dataset.month; renderCalendar(); });
+      });
+
+      const daysInMonth = currentMonth === 13 ? 6 : 30;
+      const startOffset = (currentMonth * 2 + 1) % 7;
+      let daysHTML = "";
+      for (let i = 0; i < startOffset; i++) daysHTML += `<div class="cal-day empty"></div>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const photo = firstPhotoForDay(currentMonth, d);
+        const key = `${currentYear}-${currentMonth}-${d}`;
+        const isHoliday = HOLIDAYS[key];
+        if (photo) {
+          daysHTML += `<button class="cal-day has-photos ${isHoliday ? "holiday" : ""}" data-day="${d}"><img src="${photo.src}" alt="" loading="lazy" /><span class="day-label">${d}</span></button>`;
+        } else {
+          daysHTML += `<button class="cal-day empty-day ${isHoliday ? "holiday" : ""}" data-day="${d}"><span class="day-label">${d}</span></button>`;
+        }
+      }
+      document.getElementById("calDays").innerHTML = daysHTML;
+
+      document.querySelectorAll(".cal-day[data-day]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const day = +btn.dataset.day;
+          const photos = photosForDate(currentYear, currentMonth, day);
+          if (!photos.length) { showToast("No photos on this day"); return; }
+          switchScreen("photos");
+          renderTimeline(photos, { y: currentYear, m: currentMonth, d: day });
+        });
+      });
+    }
+
+    function renderFolders() {
+      const grid = document.getElementById("foldersGrid");
+      grid.innerHTML = FOLDERS.map(f => {
+        const cover = photosForFolder(f.id)[0] || SAMPLE_PHOTOS[0];
+        return `<div class="folder-card" data-folder="${f.id}"><img src="${cover.src}" alt="${f.name}" loading="lazy" /><div class="folder-overlay"><div class="folder-name">${f.name}</div><div class="folder-meta">${f.count.toLocaleString()} items · ${f.size}</div></div></div>`;
+      }).join("");
+      grid.querySelectorAll(".folder-card").forEach(card => {
+        card.addEventListener("click", () => openFolder(card.dataset.folder));
+      });
+    }
+
+    function openFolder(folderId) {
+      const folder = FOLDERS.find(f => f.id === folderId);
+      document.getElementById("folderDetailTitle").textContent = folder ? folder.name : folderId;
+      const photos = photosForFolder(folderId);
+      const grid = document.getElementById("folderPhotoGrid");
+      grid.innerHTML = photos.length ? photos.map(p => thumbHTML(p)).join("") : `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-muted)">No sample photos</div>`;
+      grid.querySelectorAll(".thumb").forEach(el => el.addEventListener("click", () => openViewer(+el.dataset.id)));
+      switchScreen("folderDetail");
+    }
+
+    function renderSearchSuggestions(query = "") {
+      const q = query.trim().toLowerCase();
+      const items = [];
+      groupByEthDate(SAMPLE_PHOTOS).forEach(g => {
+        const label = ethDateStr(g.eth);
+        if (!q || label.includes(q) || g.greg.toLowerCase().includes(q) || String(g.eth.d).includes(q)) {
+          items.push({ type: "date", label, count: g.photos.length, eth: g.eth });
+        }
+      });
+      const locs = {};
+      SAMPLE_PHOTOS.forEach(p => { if (p.location) locs[p.location] = (locs[p.location] || 0) + 1; });
+      Object.entries(locs).forEach(([loc, c]) => {
+        if (!q || loc.toLowerCase().includes(q)) items.push({ type: "location", label: loc, count: c });
+      });
+      FOLDERS.forEach(f => {
+        if (!q || f.name.toLowerCase().includes(q)) items.push({ type: "folder", label: f.name, count: f.count, folderId: f.id });
+      });
+      const favCount = SAMPLE_PHOTOS.filter(p => p.fav).length;
+      const vidCount = SAMPLE_PHOTOS.filter(p => p.type === "video").length;
+      if (!q || "favorites".includes(q) || "fav".includes(q) || "favourites".includes(q)) items.push({ type: "favorites", label: "Favourites", count: favCount });
+      if (!q || "videos".includes(q) || "video".includes(q)) items.push({ type: "videos", label: "Videos", count: vidCount });
+
+      const container = document.getElementById("searchSuggestions");
+      if (!items.length) {
+        container.innerHTML = `<div style="padding:32px;text-align:center;color:var(--text-muted)">No results</div>`;
+        return;
+      }
+      let html = `<div class="search-section-title">Suggestions</div>`;
+      items.slice(0, 14).forEach(it => {
+        html += `<div class="search-item" data-type="${it.type}" data-label="${it.label}" ${it.eth ? `data-y="${it.eth.y}" data-m="${it.eth.m}" data-d="${it.eth.d}"` : ""} ${it.folderId ? `data-folder="${it.folderId}"` : ""}><span class="search-item-label">${it.label}</span><span class="search-item-count">${it.count}</span></div>`;
+      });
+      container.innerHTML = html;
+      container.querySelectorAll(".search-item").forEach(el => {
+        el.addEventListener("click", () => {
+          const type = el.dataset.type;
+          if (type === "date") {
+            const eth = { y: +el.dataset.y, m: +el.dataset.m, d: +el.dataset.d };
+            switchScreen("photos");
+            renderTimeline(photosForDate(eth.y, eth.m, eth.d), eth);
+          } else if (type === "folder") openFolder(el.dataset.folder);
+          else if (type === "location") { switchScreen("photos"); renderTimeline(SAMPLE_PHOTOS.filter(p => p.location === el.dataset.label)); }
+          else if (type === "favorites") { switchScreen("photos"); renderTimeline(SAMPLE_PHOTOS.filter(p => p.fav)); }
+          else if (type === "videos") { switchScreen("photos"); renderTimeline(SAMPLE_PHOTOS.filter(p => p.type === "video")); }
+        });
+      });
+    }
+
+    function openViewer(id) {
+      const p = SAMPLE_PHOTOS.find(x => x.id === id);
+      if (!p) return;
+      selectedPhoto = p;
+      document.getElementById("viewerImg").src = p.src.replace("/500/500", "/900/900");
+      document.getElementById("viewerEth").textContent = ethDateStr(p.eth) + " ዓ.ም.";
+      document.getElementById("viewerGreg").textContent = `${p.greg} · ${p.time}`;
+      let extra = [];
+      if (p.location) extra.push(`📍 ${p.location}`);
+      extra.push(`📱 ${p.folder}`);
+      if (p.type === "video") extra.push(`▶ ${p.duration}`);
+      document.getElementById("viewerExtra").innerHTML = extra.map(e => `<span>${e}</span>`).join("");
+      updateFavIcon(p.fav);
+      document.getElementById("viewer").classList.add("open");
+    }
+
+    function closeViewer() {
+      document.getElementById("viewer").classList.remove("open");
+      selectedPhoto = null;
+    }
+
+    function updateFavIcon(isFav) {
+      const icon = document.getElementById("viewerFavIcon");
+      if (isFav) {
+        icon.innerHTML = `<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#f0a0c8"/>`;
+      } else {
+        icon.innerHTML = `<path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z"/>`;
+      }
+    }
+
+    function toggleFavorite() {
+      if (!selectedPhoto) return;
+      selectedPhoto.fav = !selectedPhoto.fav;
+      updateFavIcon(selectedPhoto.fav);
+      if (currentScreen === "photos") renderTimeline();
+      showToast(selectedPhoto.fav ? "Added to favourites" : "Removed from favourites");
+    }
+
+    function switchScreen(name) {
+      currentScreen = name;
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      const map = { photos: "screenPhotos", calendar: "screenCalendar", folders: "screenFolders", folderDetail: "screenFolderDetail", search: "screenSearch" };
+      const el = document.getElementById(map[name]);
+      if (el) el.classList.add("active");
+      document.querySelectorAll(".nav-item").forEach(btn => {
+        const nav = btn.dataset.nav;
+        btn.classList.toggle("active", (name === "folderDetail" && nav === "folders") || name === nav);
+      });
+      const titles = { photos: "Photos Habesha", calendar: "Calendar", folders: "Folders", folderDetail: "Folders", search: "Search" };
+      document.getElementById("topTitle").textContent = titles[name] || "Photos Habesha";
+      if (name === "photos") renderTimeline();
+      if (name === "calendar") renderCalendar();
+      if (name === "folders") renderFolders();
+      if (name === "search") renderSearchSuggestions();
+    }
+
+    document.querySelectorAll(".nav-item").forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.nav)));
+    document.getElementById("btnSearch").addEventListener("click", () => switchScreen("search"));
+    document.getElementById("btnFolderBack").addEventListener("click", () => switchScreen("folders"));
+    document.getElementById("viewerClose").addEventListener("click", closeViewer);
+    document.getElementById("viewerFav").addEventListener("click", toggleFavorite);
+    document.getElementById("viewerMore").addEventListener("click", () => showToast("More options (prototype)"));
+
+    document.querySelectorAll(".quick-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const q = chip.dataset.quick;
+        if (q === "videos") { switchScreen("photos"); renderTimeline(SAMPLE_PHOTOS.filter(p => p.type === "video")); }
+        else if (q === "favorites") { switchScreen("photos"); renderTimeline(SAMPLE_PHOTOS.filter(p => p.fav)); }
+        else if (q === "screenshots") openFolder("Screenshots");
+        else if (q === "location") { switchScreen("search"); document.getElementById("searchInput").value = ""; renderSearchSuggestions("location"); }
+      });
+    });
+
+    const menuBtn = document.getElementById("btnMenu");
+    const menuPopover = document.getElementById("menuPopover");
+    const menuOverlay = document.getElementById("menuOverlay");
+    menuBtn.addEventListener("click", (e) => { e.stopPropagation(); menuPopover.classList.toggle("open"); menuOverlay.classList.toggle("open"); });
+    menuOverlay.addEventListener("click", () => { menuPopover.classList.remove("open"); menuOverlay.classList.remove("open"); });
+    document.querySelectorAll(".menu-item").forEach(item => {
+      item.addEventListener("click", () => {
+        menuPopover.classList.remove("open");
+        menuOverlay.classList.remove("open");
+        const action = item.dataset.action;
+        if (action === "about") showToast("Photos Habesha · Your memories on the Ethiopian calendar");
+        else if (action === "settings") showToast("Settings (coming in Android app)");
+        else showToast("Select mode (prototype)");
+      });
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (e) => renderSearchSuggestions(e.target.value));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeViewer(); });
+
+    renderTimeline();
+    renderCalendar();
+    renderFolders();
+    renderSearchSuggestions();
+  </script>
+</body>
+</html>

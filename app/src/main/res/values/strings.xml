@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Photos Habesha</string>
+    <string name="photos">Photos</string>
+    <string name="calendar">Calendar</string>
+    <string name="folders">Folders</string>
+    <string name="search">Search</string>
+    <string name="permission_rationale">Photos Habesha needs access to your photos and videos to organize them by the Ethiopian calendar. Your media never leaves this device.</string>
+    <string name="grant_permission">Grant access</string>
+    <string name="no_photos">No photos found</string>
+    <string name="on_this_day">On this day</string>
+</resources>
